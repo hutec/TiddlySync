@@ -1,17 +1,18 @@
 package com.example.tiddlysync
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Base64
+import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.AuthFailureError
+import com.android.volley.NetworkResponse
 import com.android.volley.Request
 import com.android.volley.Response
+import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
-import kotlin.collections.HashMap
 
 
 class MainActivity : AppCompatActivity() {
@@ -89,5 +90,13 @@ class JsonObjectRequestBasicAuth(
         headers["Authorization"] = auth
 
         return headers
+    }
+
+    override fun parseNetworkResponse(response: NetworkResponse): Response<JSONObject> {
+        // 204 is expected, return empty JSON object
+        if (response.statusCode == 204) {
+            return Response.success(JSONObject(), HttpHeaderParser.parseCacheHeaders(response))
+        }
+        return super.parseNetworkResponse(response)
     }
 }
