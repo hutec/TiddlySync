@@ -14,9 +14,14 @@ import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
+    private val url:String = ""
+    private val credentials:String = ""
+    private var queue:RequestQueue? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        queue = Volley.newRequestQueue(this)
 
         when {
             intent?.action == Intent.ACTION_SEND -> {
@@ -38,19 +43,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTiddler(newText: String) {
-        val url = ""
-        val credentials = ""
-        val queue = Volley.newRequestQueue(this)
-
-
-        // API call
         val request = JsonObjectRequestBasicAuth(Request.Method.GET, url, null,
             Response.Listener{ response->
                 try {
                     // Parse the json object here
                     val oldText = response.get("text").toString()
                     txtMain.text = "Response : $response"
-                    writeTiddler(oldText, newText, queue)
+                    writeTiddler(oldText, newText)
 
                 }catch (e:Exception){
                     e.printStackTrace()
@@ -60,13 +59,11 @@ class MainActivity : AppCompatActivity() {
                 txtMain.text = "Volley error: $it"
             }, credentials
         )
-        queue.add(request)
+
+        queue?.add(request)
     }
 
-    private fun writeTiddler(oldtext: String, newText: String, queue: RequestQueue) {
-        val url = ""
-        val credentials = ""
-
+    private fun writeTiddler(oldtext: String, newText: String) {
         val jsonObj = JSONObject()
         jsonObj.put("title", "AndroidTiddler")
         jsonObj.put("text", "* %s \n %s".format(newText, oldtext))
@@ -83,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                 txtMain.text = "Volley error: $it"
             }, credentials
         )
-        queue.add(request)
+        queue?.add(request)
     }
 }
 
