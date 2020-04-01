@@ -4,10 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Base64
 import androidx.appcompat.app.AppCompatActivity
-import com.android.volley.AuthFailureError
-import com.android.volley.NetworkResponse
-import com.android.volley.Request
-import com.android.volley.Response
+import com.android.volley.*
 import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
@@ -34,25 +31,49 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleSendText(intent: Intent) {
+        // Read content of existing Tiddler and append the received content
         val receivedText = intent.getStringExtra(Intent.EXTRA_TEXT)
         txtMain.text = receivedText
+        updateTiddler(receivedText)
+    }
 
+    private fun updateTiddler(newText: String) {
         val url = ""
         val credentials = ""
-
         val queue = Volley.newRequestQueue(this)
 
-        // New tiddler
-        val jsonObj = JSONObject()
-        jsonObj.put("title", "AndroidTiddler")
-        jsonObj.put("text", receivedText)
-        txtMain.text = "$jsonObj"
 
         // API call
-        val request = JsonObjectRequestBasicAuth(Request.Method.PUT, url, jsonObj,
+        val request = JsonObjectRequestBasicAuth(Request.Method.GET, url, null,
             Response.Listener{ response->
                 try {
                     // Parse the json object here
+                    val oldText = response.get("text").toString()
+                    txtMain.text = "Response : $response"
+                    writeTiddler(oldText, newText, queue)
+
+                }catch (e:Exception){
+                    e.printStackTrace()
+                    txtMain.text = "Parse exception : $e"
+                }
+            }, Response.ErrorListener{
+                txtMain.text = "Volley error: $it"
+            }, credentials
+        )
+        queue.add(request)
+    }
+
+    private fun writeTiddler(oldtext: String, newText: String, queue: RequestQueue) {
+        val url = ""
+        val credentials = ""
+
+        val jsonObj = JSONObject()
+        jsonObj.put("title", "AndroidTiddler")
+        jsonObj.put("text", "* %s \n %s".format(newText, oldtext))
+
+        val request = JsonObjectRequestBasicAuth(Request.Method.PUT, url, jsonObj,
+            Response.Listener{ response->
+                try {
                     txtMain.text = "Response : $response"
                 }catch (e:Exception){
                     e.printStackTrace()
